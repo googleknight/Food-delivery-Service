@@ -3,8 +3,8 @@
 A production-ready REST API for a food delivery service built with Node.js, Express, and Prisma.
 
 ### Documentation
-
--   **Swagger UI**: Once the server is running, the interactive API documentation is available at `http://localhost:3000/api-docs`.
+-   🌐 **[Developer Portal](https://googleknight.github.io/Food-delivery-Service/)**: The central hub for all documentation, featuring a comprehensive OpenAPI Reference, architectural decisions, and Postman setups.
+-   **Swagger UI**: Once the server is running, the interactive API documentation is also available locally at `http://localhost:3000/api-docs`.
 -   **Technical Specifications**: Detailed architecture and endpoint details can be found in `docs/tech-specs.md`.
 
 ### Testing with Postman

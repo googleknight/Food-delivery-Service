@@ -1,3 +1,8 @@
+---
+id: implementation-plan
+title: Implementation Plan
+sidebar_position: 4
+---
 # Food Delivery Service API — Implementation Plan
 
 ## Goal
@@ -142,7 +147,7 @@ eslint, prettier
 - Checks **in-memory cache** (node-cache, 60s TTL) for user's `isBlocked` status
 - On cache miss: loads user from DB, caches result
 - Attaches user to `req.user`
-- On user block in admin service: `cache.del(\`user:\${userId}\`)` for immediate invalidation
+- On user block in admin service: `cache.del('user:' + userId)` for immediate invalidation
 
 #### [NEW] src/middleware/authorize.ts
 - Factory function: `authorize(...roles: Role[])`

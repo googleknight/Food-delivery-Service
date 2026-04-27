@@ -1,3 +1,8 @@
+---
+id: assumptions
+title: Assumptions
+sidebar_position: 2
+---
 # Food Delivery Service API — Assumptions
 
 This document lists all assumptions made during the design and implementation of the Food Delivery Service API. These assumptions help clarify scope, guide implementation decisions, and set expectations for the evaluator.

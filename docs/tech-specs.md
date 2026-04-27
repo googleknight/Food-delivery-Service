@@ -1,3 +1,8 @@
+---
+id: tech-specs
+title: Technical Specifications
+sidebar_position: 1
+---
 # Food Delivery Service API — Technical Specification
 
 ## 1. Overview
@@ -866,3 +871,11 @@ totalAmount = taxableAmount + taxAmount + tipAmount
 5. `npm run dev` — Start development server
 6. `npm test` — Run all tests
 7. Import Postman collection for manual testing
+
+## API Testing
+
+You can test the API using our Postman collection and environment:
+
+- [Download Postman Collection](/postman/food-delivery-api.postman_collection.json)
+- [Download Postman Environment](/postman/food-delivery-api.postman_environment.json)
+

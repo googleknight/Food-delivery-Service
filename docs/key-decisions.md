@@ -1,3 +1,8 @@
+---
+id: key-decisions
+title: Key Decisions
+sidebar_position: 3
+---
 # Food Delivery Service API — Key Decisions
 
 This document records significant technical and architectural decisions made during the design of the Food Delivery Service API, along with alternatives considered and the reasoning behind each choice.
@@ -207,7 +212,7 @@ const VALID_TRANSITIONS: Record<OrderStatus, { status: OrderStatus; allowedRoles
 - **Near-instant enforcement**: Blocked users lose access within ≤60 seconds (cache TTL). A DB query on every request is overkill for a single-process app.
 - **Zero infrastructure**: node-cache is in-process memory. No Redis server needed.
 - **Performance**: Cache hit = ~0ms. DB fallback = ~1-2ms. With cache, 95%+ of requests avoid the DB entirely.
-- **Cache invalidation**: When an admin blocks a user, we call `cache.del(\`user:\${userId}\`)` in the user service, so the next request re-fetches from DB.
+- **Cache invalidation**: When an admin blocks a user, we call `cache.del('user:' + userId)` in the user service, so the next request re-fetches from DB.
 - **Trade-off**: A blocked user could make requests for up to 60 seconds after being blocked (cache TTL). This is acceptable — even production systems (e.g., Firebase Auth) have propagation delays.
 - **Swap path**: The cache is abstracted behind a `CacheService` interface. Swapping to Redis for horizontal scaling is a single-file change.
 
