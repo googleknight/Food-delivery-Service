@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "types": ["node", "jest"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@types": ["./src/types"],
+      "@constants/*": ["./src/constants/*"],
+      "@config": ["./src/config/index"],
+      "@config/*": ["./src/config/*"],
+      "@middleware/*": ["./src/middleware/*"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*", "eslint.config.mjs", "jest.config.ts", "prisma.config.ts"],
+  "exclude": ["node_modules", "dist", "prisma"]
+}

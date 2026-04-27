@@ -1,0 +1,1482 @@
+/**
+ * OpenAPI 3.0 specification for the Food Delivery Service API.
+ * Served at /api-docs via swagger-ui-express.
+ */
+
+export const swaggerSpec = {
+  openapi: "3.0.0",
+  info: {
+    title: "Food Delivery Service API",
+    version: "1.0.0",
+    description:
+      "A RESTful API for a food delivery service with three roles (Customer, Restaurant Owner, Admin), order lifecycle management, coupon support, and comprehensive integration tests.",
+    contact: {
+      name: "Shubham Mathur",
+    },
+  },
+  servers: [{ url: "/api/v1", description: "API v1" }],
+  tags: [
+    {
+      name: "Auth",
+      description: "Registration, login, token management, profile",
+    },
+    { name: "Users (Admin)", description: "Admin-only user management" },
+    { name: "Restaurants", description: "Restaurant CRUD and blocking" },
+    { name: "Meals", description: "Meal CRUD nested under restaurants" },
+    { name: "Orders", description: "Order placement and status lifecycle" },
+    { name: "Coupons", description: "Coupon CRUD nested under restaurants" },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Access token obtained from /auth/login or /auth/register",
+      },
+    },
+    schemas: {
+      // ─── Request Bodies ─────────────────────────────────────────
+      RegisterRequest: {
+        type: "object",
+        required: ["email", "password", "name", "role"],
+        properties: {
+          email: {
+            type: "string",
+            format: "email",
+            example: "customer@example.com",
+          },
+          password: { type: "string", minLength: 8, example: "Test@123456" },
+          name: { type: "string", example: "John Doe" },
+          role: {
+            type: "string",
+            enum: ["CUSTOMER", "RESTAURANT_OWNER"],
+            example: "CUSTOMER",
+          },
+        },
+      },
+      LoginRequest: {
+        type: "object",
+        required: ["email", "password"],
+        properties: {
+          email: {
+            type: "string",
+            format: "email",
+            example: "customer@example.com",
+          },
+          password: { type: "string", example: "Test@123456" },
+        },
+      },
+      RefreshTokenRequest: {
+        type: "object",
+        required: ["refreshToken"],
+        properties: {
+          refreshToken: { type: "string", example: "eyJhbGciOi..." },
+        },
+      },
+      UpdateProfileRequest: {
+        type: "object",
+        properties: {
+          name: { type: "string", example: "Updated Name" },
+          password: { type: "string", minLength: 8, example: "NewPass@123" },
+        },
+      },
+      CreateUserRequest: {
+        type: "object",
+        required: ["email", "password", "name", "role"],
+        properties: {
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 8 },
+          name: { type: "string" },
+          role: {
+            type: "string",
+            enum: ["CUSTOMER", "RESTAURANT_OWNER", "ADMIN"],
+          },
+        },
+      },
+      UpdateUserRequest: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 8 },
+          role: {
+            type: "string",
+            enum: ["CUSTOMER", "RESTAURANT_OWNER", "ADMIN"],
+          },
+        },
+      },
+      BlockRequest: {
+        type: "object",
+        required: ["isBlocked"],
+        properties: {
+          isBlocked: { type: "boolean", example: true },
+        },
+      },
+      CreateRestaurantRequest: {
+        type: "object",
+        required: ["name", "description"],
+        properties: {
+          name: { type: "string", example: "Pizza Palace" },
+          description: {
+            type: "string",
+            example: "Italian cuisine, wood-fired pizzas",
+          },
+        },
+      },
+      UpdateRestaurantRequest: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          description: { type: "string" },
+        },
+      },
+      CreateMealRequest: {
+        type: "object",
+        required: ["name", "description", "price"],
+        properties: {
+          name: { type: "string", example: "Margherita Pizza" },
+          description: {
+            type: "string",
+            example: "Classic margherita with fresh mozzarella",
+          },
+          price: { type: "number", minimum: 0.01, example: 12.99 },
+        },
+      },
+      UpdateMealRequest: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          description: { type: "string" },
+          price: { type: "number", minimum: 0.01 },
+          isAvailable: { type: "boolean" },
+        },
+      },
+      CreateOrderRequest: {
+        type: "object",
+        required: ["restaurantId", "items"],
+        properties: {
+          restaurantId: { type: "string", format: "uuid" },
+          items: {
+            type: "array",
+            minItems: 1,
+            items: {
+              type: "object",
+              required: ["mealId", "quantity"],
+              properties: {
+                mealId: { type: "string", format: "uuid" },
+                quantity: { type: "integer", minimum: 1, example: 2 },
+              },
+            },
+          },
+          couponCode: { type: "string", example: "SAVE20" },
+          tipAmount: { type: "number", minimum: 0, default: 0, example: 5.0 },
+        },
+      },
+      UpdateOrderStatusRequest: {
+        type: "object",
+        required: ["status"],
+        properties: {
+          status: {
+            type: "string",
+            enum: [
+              "CANCELED",
+              "PROCESSING",
+              "IN_ROUTE",
+              "DELIVERED",
+              "RECEIVED",
+            ],
+            example: "PROCESSING",
+          },
+        },
+      },
+      CreateCouponRequest: {
+        type: "object",
+        required: ["code", "discountPercent"],
+        properties: {
+          code: { type: "string", example: "SAVE20" },
+          discountPercent: {
+            type: "number",
+            minimum: 0.01,
+            maximum: 100,
+            example: 20,
+          },
+          maxUsageTotal: { type: "integer", nullable: true, example: 100 },
+          maxUsagePerCustomer: { type: "integer", nullable: true, example: 1 },
+          expiresAt: { type: "string", format: "date-time", nullable: true },
+          isActive: { type: "boolean", default: true },
+        },
+      },
+      UpdateCouponRequest: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+          discountPercent: { type: "number", minimum: 0.01, maximum: 100 },
+          maxUsageTotal: { type: "integer", nullable: true },
+          maxUsagePerCustomer: { type: "integer", nullable: true },
+          expiresAt: { type: "string", format: "date-time", nullable: true },
+          isActive: { type: "boolean" },
+        },
+      },
+
+      // ─── Response Schemas ───────────────────────────────────────
+      User: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          email: { type: "string", format: "email" },
+          name: { type: "string" },
+          role: {
+            type: "string",
+            enum: ["CUSTOMER", "RESTAURANT_OWNER", "ADMIN"],
+          },
+          isBlocked: { type: "boolean" },
+          isBuiltInAdmin: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      AuthResponse: {
+        type: "object",
+        properties: {
+          user: { $ref: "#/components/schemas/User" },
+          accessToken: { type: "string" },
+          refreshToken: { type: "string" },
+        },
+      },
+      TokenResponse: {
+        type: "object",
+        properties: {
+          accessToken: { type: "string" },
+          refreshToken: { type: "string" },
+        },
+      },
+      Restaurant: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          name: { type: "string" },
+          description: { type: "string" },
+          ownerId: { type: "string", format: "uuid" },
+          isBlocked: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      Meal: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          name: { type: "string" },
+          description: { type: "string" },
+          price: { type: "string", example: "12.99" },
+          restaurantId: { type: "string", format: "uuid" },
+          isAvailable: { type: "boolean" },
+          isBlocked: { type: "boolean" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      Coupon: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          code: { type: "string" },
+          discountPercent: { type: "string", example: "20.00" },
+          restaurantId: { type: "string", format: "uuid" },
+          isActive: { type: "boolean" },
+          maxUsageTotal: { type: "integer", nullable: true },
+          maxUsagePerCustomer: { type: "integer", nullable: true },
+          currentUsageTotal: { type: "integer" },
+          expiresAt: { type: "string", format: "date-time", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+        },
+      },
+      Order: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          customerId: { type: "string", format: "uuid" },
+          restaurantId: { type: "string", format: "uuid" },
+          status: {
+            type: "string",
+            enum: [
+              "PLACED",
+              "CANCELED",
+              "PROCESSING",
+              "IN_ROUTE",
+              "DELIVERED",
+              "RECEIVED",
+            ],
+          },
+          subtotal: { type: "string", example: "25.98" },
+          discountAmount: { type: "string", example: "5.20" },
+          tipAmount: { type: "string", example: "3.00" },
+          totalAmount: { type: "string", example: "23.78" },
+          couponId: { type: "string", format: "uuid", nullable: true },
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string", format: "uuid" },
+                mealId: { type: "string", format: "uuid" },
+                quantity: { type: "integer" },
+                unitPrice: { type: "string" },
+                itemTotal: { type: "string" },
+                meal: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          statusHistory: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string", format: "uuid" },
+                status: { type: "string" },
+                changedAt: { type: "string", format: "date-time" },
+                changedBy: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    role: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+          restaurant: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              name: { type: "string" },
+            },
+          },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      PaginationMeta: {
+        type: "object",
+        properties: {
+          page: { type: "integer", example: 1 },
+          limit: { type: "integer", example: 20 },
+          total: { type: "integer", example: 50 },
+          totalPages: { type: "integer", example: 3 },
+        },
+      },
+      ErrorResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: false },
+          error: {
+            type: "object",
+            properties: {
+              code: { type: "string", example: "VALIDATION_ERROR" },
+              message: { type: "string", example: "Invalid input" },
+              details: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    field: { type: "string" },
+                    message: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    parameters: {
+      PageParam: {
+        in: "query",
+        name: "page",
+        schema: { type: "integer", default: 1 },
+        description: "Page number",
+      },
+      LimitParam: {
+        in: "query",
+        name: "limit",
+        schema: { type: "integer", default: 20, maximum: 100 },
+        description: "Items per page",
+      },
+      SearchParam: {
+        in: "query",
+        name: "search",
+        schema: { type: "string" },
+        description: "Search term",
+      },
+      SortByParam: {
+        in: "query",
+        name: "sortBy",
+        schema: { type: "string", default: "createdAt" },
+        description: "Sort field",
+      },
+      SortOrderParam: {
+        in: "query",
+        name: "sortOrder",
+        schema: { type: "string", enum: ["asc", "desc"], default: "desc" },
+        description: "Sort order",
+      },
+      FieldsParam: {
+        in: "query",
+        name: "fields",
+        schema: { type: "string" },
+        description:
+          "Comma-separated field names to return (e.g. id,name,email)",
+      },
+    },
+    responses: {
+      Unauthorized: {
+        description: "Missing or invalid authentication",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
+        },
+      },
+      Forbidden: {
+        description: "Insufficient permissions",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
+        },
+      },
+      NotFound: {
+        description: "Resource not found",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
+        },
+      },
+      ValidationError: {
+        description: "Validation error",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
+        },
+      },
+      Conflict: {
+        description: "Conflict (duplicate resource)",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
+        },
+      },
+    },
+  },
+  paths: {
+    // ═══════════════════════════════════════════════════════════════
+    // AUTH
+    // ═══════════════════════════════════════════════════════════════
+    "/auth/register": {
+      post: {
+        tags: ["Auth"],
+        summary: "Register a new user",
+        description:
+          "Creates a new Customer or Restaurant Owner account and returns JWT tokens.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/RegisterRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "User registered successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/AuthResponse" },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          409: { $ref: "#/components/responses/Conflict" },
+        },
+      },
+    },
+    "/auth/login": {
+      post: {
+        tags: ["Auth"],
+        summary: "Login",
+        description:
+          "Authenticates a user and returns access + refresh JWT tokens.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/LoginRequest" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Login successful",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/AuthResponse" },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/auth/refresh": {
+      post: {
+        tags: ["Auth"],
+        summary: "Refresh access token",
+        description:
+          "Exchanges a valid refresh token for a new access + refresh token pair. Old refresh token is revoked (rotation).",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/RefreshTokenRequest" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Tokens refreshed",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/TokenResponse" },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/auth/logout": {
+      post: {
+        tags: ["Auth"],
+        summary: "Logout",
+        description: "Revokes all refresh tokens for the authenticated user.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Logged out successfully" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/auth/me": {
+      get: {
+        tags: ["Auth"],
+        summary: "Get current user profile",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Current user profile",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/User" },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+      patch: {
+        tags: ["Auth"],
+        summary: "Update own profile",
+        description: "Update name and/or password for the authenticated user.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateProfileRequest" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Profile updated",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/User" },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // USERS (Admin only)
+    // ═══════════════════════════════════════════════════════════════
+    "/admin/users": {
+      get: {
+        tags: ["Users (Admin)"],
+        summary: "List all users",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { $ref: "#/components/parameters/PageParam" },
+          { $ref: "#/components/parameters/LimitParam" },
+          { $ref: "#/components/parameters/SearchParam" },
+          { $ref: "#/components/parameters/SortByParam" },
+          { $ref: "#/components/parameters/SortOrderParam" },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Paginated list of users",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/User" },
+                    },
+                    meta: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+      post: {
+        tags: ["Users (Admin)"],
+        summary: "Create a user (any role)",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateUserRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "User created",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/User" },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          409: { $ref: "#/components/responses/Conflict" },
+        },
+      },
+    },
+    "/admin/users/{id}": {
+      get: {
+        tags: ["Users (Admin)"],
+        summary: "Get user by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "User details",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/User" },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      patch: {
+        tags: ["Users (Admin)"],
+        summary: "Update user",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateUserRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "User updated" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      delete: {
+        tags: ["Users (Admin)"],
+        summary: "Delete user",
+        description:
+          "Deletes a user. The built-in admin account cannot be deleted.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          204: { description: "User deleted" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/admin/users/{id}/block": {
+      patch: {
+        tags: ["Users (Admin)"],
+        summary: "Block or unblock a user",
+        description:
+          "Blocks or unblocks a user. Blocking revokes all refresh tokens and immediately invalidates the auth cache.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/BlockRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "User block status updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // RESTAURANTS
+    // ═══════════════════════════════════════════════════════════════
+    "/restaurants": {
+      get: {
+        tags: ["Restaurants"],
+        summary: "List restaurants",
+        description:
+          "Customers see only unblocked restaurants. Owners see their own + unblocked. Admins see all.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { $ref: "#/components/parameters/PageParam" },
+          { $ref: "#/components/parameters/LimitParam" },
+          { $ref: "#/components/parameters/SearchParam" },
+          { $ref: "#/components/parameters/SortByParam" },
+          { $ref: "#/components/parameters/SortOrderParam" },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Paginated list of restaurants",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Restaurant" },
+                    },
+                    meta: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ["Restaurants"],
+        summary: "Create a restaurant",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateRestaurantRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Restaurant created",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Restaurant" },
+                  },
+                },
+              },
+            },
+          },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/restaurants/{id}": {
+      get: {
+        tags: ["Restaurants"],
+        summary: "Get restaurant by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Restaurant details",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Restaurant" },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      patch: {
+        tags: ["Restaurants"],
+        summary: "Update restaurant",
+        description: "Owner can update own restaurant. Admin can update any.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateRestaurantRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Restaurant updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      delete: {
+        tags: ["Restaurants"],
+        summary: "Delete restaurant",
+        description:
+          "Cannot delete a restaurant with active orders (PLACED, PROCESSING, IN_ROUTE).",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          204: { description: "Restaurant deleted" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          422: { description: "Cannot delete restaurant with active orders" },
+        },
+      },
+    },
+    "/restaurants/{id}/block": {
+      patch: {
+        tags: ["Restaurants"],
+        summary: "Block or unblock a restaurant (Admin only)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/BlockRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Restaurant block status updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // MEALS
+    // ═══════════════════════════════════════════════════════════════
+    "/restaurants/{restaurantId}/meals": {
+      get: {
+        tags: ["Meals"],
+        summary: "List meals for a restaurant",
+        description:
+          "Customers see only available, non-blocked meals. Owners/admins see all.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          { $ref: "#/components/parameters/PageParam" },
+          { $ref: "#/components/parameters/LimitParam" },
+          { $ref: "#/components/parameters/SearchParam" },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Paginated list of meals",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Meal" },
+                    },
+                    meta: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      post: {
+        tags: ["Meals"],
+        summary: "Create a meal",
+        description:
+          "Owner can create meals for own restaurants. Admin can create for any.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateMealRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Meal created",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Meal" },
+                  },
+                },
+              },
+            },
+          },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/restaurants/{restaurantId}/meals/{id}": {
+      get: {
+        tags: ["Meals"],
+        summary: "Get meal by ID",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Meal details",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Meal" },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      patch: {
+        tags: ["Meals"],
+        summary: "Update meal",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateMealRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Meal updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      delete: {
+        tags: ["Meals"],
+        summary: "Delete meal",
+        description: "Cannot delete a meal that is part of an active order.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          204: { description: "Meal deleted" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          422: { description: "Cannot delete meal in active orders" },
+        },
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // ORDERS
+    // ═══════════════════════════════════════════════════════════════
+    "/orders": {
+      post: {
+        tags: ["Orders"],
+        summary: "Place a new order",
+        description:
+          "Creates an order with one or more meals from a single restaurant. Optionally applies a coupon and adds a tip. Only customers can place orders.",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateOrderRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Order placed",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Order" },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          422: {
+            description:
+              "Business logic error (expired coupon, usage limit, etc.)",
+          },
+        },
+      },
+      get: {
+        tags: ["Orders"],
+        summary: "List orders",
+        description:
+          "Customers see own orders. Owners see orders for their restaurants. Admins see all.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { $ref: "#/components/parameters/PageParam" },
+          { $ref: "#/components/parameters/LimitParam" },
+          { $ref: "#/components/parameters/SortByParam" },
+          { $ref: "#/components/parameters/SortOrderParam" },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Paginated list of orders",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Order" },
+                    },
+                    meta: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    "/orders/{id}": {
+      get: {
+        tags: ["Orders"],
+        summary: "Get order by ID",
+        description:
+          "Returns full order details including items, status history, and coupon info.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Order details",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Order" },
+                  },
+                },
+              },
+            },
+          },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/orders/{id}/status": {
+      patch: {
+        tags: ["Orders"],
+        summary: "Update order status",
+        description:
+          "Transitions the order to a new status following the state machine rules. Valid transitions: PLACED→PROCESSING (owner), PLACED→CANCELED (customer/owner), PROCESSING→IN_ROUTE (owner), PROCESSING→CANCELED (owner), IN_ROUTE→DELIVERED (owner), DELIVERED→RECEIVED (customer). Admin can perform any valid transition.",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateOrderStatusRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Order status updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          422: { description: "Invalid status transition" },
+        },
+      },
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // COUPONS
+    // ═══════════════════════════════════════════════════════════════
+    "/restaurants/{restaurantId}/coupons": {
+      get: {
+        tags: ["Coupons"],
+        summary: "List coupons for a restaurant",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          { $ref: "#/components/parameters/PageParam" },
+          { $ref: "#/components/parameters/LimitParam" },
+          { $ref: "#/components/parameters/SearchParam" },
+          { $ref: "#/components/parameters/FieldsParam" },
+        ],
+        responses: {
+          200: {
+            description: "Paginated list of coupons",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/Coupon" },
+                    },
+                    meta: { $ref: "#/components/schemas/PaginationMeta" },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+      post: {
+        tags: ["Coupons"],
+        summary: "Create a coupon",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CreateCouponRequest" },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Coupon created",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    data: { $ref: "#/components/schemas/Coupon" },
+                  },
+                },
+              },
+            },
+          },
+          403: { $ref: "#/components/responses/Forbidden" },
+          409: { $ref: "#/components/responses/Conflict" },
+        },
+      },
+    },
+    "/restaurants/{restaurantId}/coupons/{id}": {
+      patch: {
+        tags: ["Coupons"],
+        summary: "Update coupon",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateCouponRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Coupon updated" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          409: { $ref: "#/components/responses/Conflict" },
+        },
+      },
+      delete: {
+        tags: ["Coupons"],
+        summary: "Delete coupon",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "restaurantId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          204: { description: "Coupon deleted" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+  },
+};

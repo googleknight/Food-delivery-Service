@@ -1,0 +1,71 @@
+export const ERROR_MESSAGES = {
+  AUTH: {
+    NOT_FOUND: "User",
+    EMAIL_EXISTS: "A user with this email already exists",
+    INVALID_CREDENTIALS: "Invalid email or password",
+    ACCOUNT_BLOCKED: "Account is blocked",
+    INVALID_TOKEN: "Invalid or expired refresh token",
+    INVALID_TOKEN_TYPE: "Invalid token type",
+    TOKEN_REVOKED: "Refresh token has been revoked",
+    TOKEN_EXPIRED: "Refresh token has expired",
+    AUTH_HEADER_INVALID: "Missing or invalid authorization header",
+    MISSING_TOKEN: "Missing token",
+    TOKEN_EXPIRED_ACCESS: "Token has expired",
+    INVALID_TOKEN_ACCESS: "Invalid token",
+    USER_NOT_FOUND: "User no longer exists",
+    AUTH_REQUIRED: "Authentication required",
+    ROLE_NOT_AUTHORIZED: (role: string) =>
+      `Role '${role}' is not authorized for this action`,
+  },
+  SYSTEM: {
+    RECORD_NOT_FOUND: "Record not found",
+    INVALID_DATA: "Invalid data provided",
+    UNEXPECTED_ERROR: "An unexpected error occurred",
+    CONFLICT: (target: string) => `A record with this ${target} already exists`,
+    REFERENCE_ERROR: "Referenced record does not exist",
+    RATE_LIMIT_EXCEEDED: "Too many requests, please try again later",
+    VALIDATION_FAILED: "Validation failed",
+  },
+  USER: {
+    NOT_FOUND: "User",
+    ROLE_CHANGE_FORBIDDEN: "Cannot change the role of the built-in admin",
+    DELETE_ADMIN_FORBIDDEN: "Cannot delete the built-in admin account",
+    BLOCK_ADMIN_FORBIDDEN: "Cannot block the built-in admin account",
+  },
+  RESTAURANT: {
+    NOT_FOUND: "Restaurant",
+    OWNERSHIP_REQUIRED: "You can only manage meals for your own restaurants",
+    BLOCKED: "This restaurant is blocked",
+    ORDER_ACCESS_DENIED: "You can only view orders for your own restaurants",
+    ORDER_UPDATE_DENIED: "You can only update orders for your own restaurants",
+    UPDATE_OWN_ONLY: "You can only update your own restaurants",
+    DELETE_OWN_ONLY: "You can only delete your own restaurants",
+    ACTIVE_ORDERS: "Cannot delete restaurant with active orders",
+  },
+  MEAL: {
+    NOT_FOUND: "Meal",
+    ACTIVE_ORDERS: "Cannot delete meal that is in active orders",
+    UNAVAILABLE: "Invalid or unavailable meals",
+  },
+  ORDER: {
+    NOT_FOUND: "Order",
+    OWN_ORDERS_ONLY: "You can only view your own orders",
+    UPDATE_OWN_ONLY: "You can only update your own orders",
+    INVALID_TRANSITION: (from: string, to: string) =>
+      `Cannot transition from '${from}' to '${to}'`,
+    ROLE_TRANSITION_DENIED: (role: string, from: string, to: string) =>
+      `Role '${role}' cannot perform transition from '${from}' to '${to}'`,
+  },
+  COUPON: {
+    NOT_FOUND: "Coupon",
+    OWNERSHIP_REQUIRED: "You can only manage coupons for your own restaurants",
+    DUPLICATE_CODE: "A coupon with this code already exists",
+    INVALID: "Invalid coupon code",
+    INACTIVE: "This coupon is no longer active",
+    EXPIRED: "This coupon has expired",
+    NOT_VALID_FOR_RESTAURANT: "This coupon is not valid for this restaurant",
+    MAX_USAGE_REACHED: "This coupon has reached its maximum usage limit",
+    CUSTOMER_LIMIT_REACHED:
+      "You have already used this coupon the maximum number of times",
+  },
+};

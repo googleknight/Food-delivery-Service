@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  RESTAURANT_OWNER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  CANCELED
+  PROCESSING
+  IN_ROUTE
+  DELIVERED
+  RECEIVED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  email          String   @unique
+  password       String
+  name           String
+  role           Role     @default(CUSTOMER)
+  isBlocked      Boolean  @default(false)
+  isBuiltInAdmin Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  restaurants        Restaurant[]
+  orders             Order[]
+  refreshTokens      RefreshToken[]
+  orderStatusChanges OrderStatusHistory[]
+  couponUsages       CouponUsage[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  jti       String   @unique
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([jti])
+  @@map("refresh_tokens")
+}
+
+model Restaurant {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String
+  description String
+  ownerId     String   @db.Uuid
+  isBlocked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner   User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  meals   Meal[]
+  orders  Order[]
+  coupons Coupon[]
+
+  @@index([ownerId])
+  @@map("restaurants")
+}
+
+model Meal {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  name         String
+  description  String
+  price        Decimal  @db.Decimal(10, 2)
+  restaurantId String   @db.Uuid
+  isAvailable  Boolean  @default(true)
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([restaurantId])
+  @@map("meals")
+}
+
+model Coupon {
+  id                  String    @id @default(uuid(7)) @db.Uuid
+  code                String    @unique
+  discountPercent     Decimal   @db.Decimal(5, 2)
+  restaurantId        String    @db.Uuid
+  isActive            Boolean   @default(true)
+  maxUsageTotal       Int? // null = unlimited
+  maxUsagePerCustomer Int? // null = unlimited
+  currentUsageTotal   Int       @default(0)
+  expiresAt           DateTime?
+  createdAt           DateTime  @default(now())
+
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders       Order[]
+  couponUsages CouponUsage[]
+
+  @@index([restaurantId])
+  @@index([code])
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  couponId   String   @db.Uuid
+  customerId String   @db.Uuid
+  orderId    String   @db.Uuid
+  usedAt     DateTime @default(now())
+
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  customer User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([couponId, customerId])
+  @@index([orderId])
+  @@map("coupon_usages")
+}
+
+model Order {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  customerId     String      @db.Uuid
+  restaurantId   String      @db.Uuid
+  status         OrderStatus @default(PLACED)
+  subtotal       Decimal     @db.Decimal(10, 2)
+  discountAmount Decimal     @default(0) @db.Decimal(10, 2)
+  tipAmount      Decimal     @default(0) @db.Decimal(10, 2)
+  totalAmount    Decimal     @db.Decimal(10, 2)
+  couponId       String?     @db.Uuid
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  customer      User                 @relation(fields: [customerId], references: [id])
+  restaurant    Restaurant           @relation(fields: [restaurantId], references: [id])
+  coupon        Coupon?              @relation(fields: [couponId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  couponUsages  CouponUsage[]
+
+  @@index([customerId])
+  @@index([restaurantId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  orderId   String  @db.Uuid
+  mealId    String  @db.Uuid
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  itemTotal Decimal @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  meal  Meal  @relation(fields: [mealId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  orderId     String      @db.Uuid
+  status      OrderStatus
+  changedById String      @db.Uuid
+  changedAt   DateTime    @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User  @relation(fields: [changedById], references: [id])
+
+  @@index([orderId])
+  @@map("order_status_history")
+}

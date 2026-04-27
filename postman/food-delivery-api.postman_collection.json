@@ -1,0 +1,126 @@
+{
+  "info": {
+    "name": "Food Delivery Service API",
+    "description": "Complete API collection for the Food Delivery Service.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Customer",
+          "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) {", "  pm.environment.set('customerToken', res.data.accessToken);", "  pm.environment.set('customerRefreshToken', res.data.refreshToken);", "  pm.environment.set('customerId', res.data.user.id);", "}"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Test@123456\",\n  \"name\": \"John Customer\",\n  \"role\": \"CUSTOMER\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] } }
+        },
+        {
+          "name": "Register Restaurant Owner",
+          "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) {", "  pm.environment.set('ownerToken', res.data.accessToken);", "  pm.environment.set('ownerRefreshToken', res.data.refreshToken);", "  pm.environment.set('ownerId', res.data.user.id);", "}"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"Test@123456\",\n  \"name\": \"Jane Owner\",\n  \"role\": \"RESTAURANT_OWNER\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] } }
+        },
+        {
+          "name": "Login Admin",
+          "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) {", "  pm.environment.set('adminToken', res.data.accessToken);", "  pm.environment.set('adminRefreshToken', res.data.refreshToken);", "  pm.environment.set('adminId', res.data.user.id);", "}"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@fooddelivery.com\",\n  \"password\": \"Admin@123456\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] } }
+        },
+        {
+          "name": "Login Customer",
+          "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) {", "  pm.environment.set('customerToken', res.data.accessToken);", "  pm.environment.set('customerRefreshToken', res.data.refreshToken);", "}"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Test@123456\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] } }
+        },
+        {
+          "name": "Login Owner",
+          "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) {", "  pm.environment.set('ownerToken', res.data.accessToken);", "  pm.environment.set('ownerRefreshToken', res.data.refreshToken);", "}"], "type": "text/javascript" } }],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"Test@123456\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] } }
+        },
+        {
+          "name": "Refresh Token",
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{customerRefreshToken}}\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] } }
+        },
+        {
+          "name": "Get My Profile",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] } }
+        },
+        {
+          "name": "Update My Profile",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Customer Name\"\n}" }, "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] } }
+        },
+        {
+          "name": "Logout",
+          "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "POST", "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] } }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "item": [
+        { "name": "List All Users", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/admin/users?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["admin", "users"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "List Users with Field Selection", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/admin/users?fields=id,email,role", "host": ["{{baseUrl}}"], "path": ["admin", "users"], "query": [{ "key": "fields", "value": "id,email,role" }] } } },
+        { "name": "Get User by ID", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/admin/users/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{customerId}}"] } } },
+        { "name": "Create User (Admin role)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"newadmin@fooddelivery.com\",\n  \"password\": \"Test@123456\",\n  \"name\": \"New Admin\",\n  \"role\": \"ADMIN\"\n}" }, "url": { "raw": "{{baseUrl}}/admin/users", "host": ["{{baseUrl}}"], "path": ["admin", "users"] } } },
+        { "name": "Update User", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated by Admin\"\n}" }, "url": { "raw": "{{baseUrl}}/admin/users/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{customerId}}"] } } },
+        { "name": "Block User", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isBlocked\": true\n}" }, "url": { "raw": "{{baseUrl}}/admin/users/{{customerId}}/block", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{customerId}}", "block"] } } },
+        { "name": "Unblock User", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isBlocked\": false\n}" }, "url": { "raw": "{{baseUrl}}/admin/users/{{customerId}}/block", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{customerId}}", "block"] } } },
+        { "name": "Delete User", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "DELETE", "url": { "raw": "{{baseUrl}}/admin/users/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{customerId}}"] } } }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "item": [
+        { "name": "Create Restaurant", "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) { pm.environment.set('restaurantId', res.data.id); }"], "type": "text/javascript" } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Pizza Palace\",\n  \"description\": \"Authentic Italian cuisine with wood-fired pizzas\"\n}" }, "url": { "raw": "{{baseUrl}}/restaurants", "host": ["{{baseUrl}}"], "path": ["restaurants"] } } },
+        { "name": "List Restaurants", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants", "host": ["{{baseUrl}}"], "path": ["restaurants"] } } },
+        { "name": "Search Restaurants", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants?search=pizza", "host": ["{{baseUrl}}"], "path": ["restaurants"], "query": [{ "key": "search", "value": "pizza" }] } } },
+        { "name": "Get Restaurant by ID", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}"] } } },
+        { "name": "Update Restaurant", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Pizza Palace - Updated\"\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}"] } } },
+        { "name": "Block Restaurant (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isBlocked\": true\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/block", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "block"] } } },
+        { "name": "Delete Restaurant", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "DELETE", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}"] } } }
+      ]
+    },
+    {
+      "name": "Meals",
+      "item": [
+        { "name": "Create Meal", "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) { pm.environment.set('mealId', res.data.id); }"], "type": "text/javascript" } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Margherita Pizza\",\n  \"description\": \"Classic margherita with fresh mozzarella and basil\",\n  \"price\": 12.99\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals"] } } },
+        { "name": "Create Second Meal", "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) { pm.environment.set('mealId2', res.data.id); }"], "type": "text/javascript" } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Caesar Salad\",\n  \"description\": \"Romaine lettuce with caesar dressing\",\n  \"price\": 8.50\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals"] } } },
+        { "name": "List Meals", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals"] } } },
+        { "name": "Get Meal by ID", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals/{{mealId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals", "{{mealId}}"] } } },
+        { "name": "Update Meal", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"price\": 14.99\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals/{{mealId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals", "{{mealId}}"] } } },
+        { "name": "Toggle Meal Availability", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isAvailable\": false\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals/{{mealId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals", "{{mealId}}"] } } },
+        { "name": "Delete Meal", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "DELETE", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/meals/{{mealId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "meals", "{{mealId}}"] } } }
+      ]
+    },
+    {
+      "name": "Coupons",
+      "item": [
+        { "name": "Create Coupon", "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) { pm.environment.set('couponId', res.data.id); pm.environment.set('couponCode', res.data.code); }"], "type": "text/javascript" } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE20\",\n  \"discountPercent\": 20,\n  \"maxUsageTotal\": 100,\n  \"maxUsagePerCustomer\": 2\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/coupons", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "coupons"] } } },
+        { "name": "List Coupons", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/coupons", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "coupons"] } } },
+        { "name": "Update Coupon", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"discountPercent\": 25,\n  \"maxUsageTotal\": 200\n}" }, "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/coupons/{{couponId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "coupons", "{{couponId}}"] } } },
+        { "name": "Delete Coupon", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "DELETE", "url": { "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/coupons/{{couponId}}", "host": ["{{baseUrl}}"], "path": ["restaurants", "{{restaurantId}}", "coupons", "{{couponId}}"] } } }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        { "name": "Place Order (no coupon)", "event": [{ "listen": "test", "script": { "exec": ["const res = pm.response.json();", "if (res.success) { pm.environment.set('orderId', res.data.id); }"], "type": "text/javascript" } }], "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"restaurantId\": \"{{restaurantId}}\",\n  \"items\": [\n    { \"mealId\": \"{{mealId}}\", \"quantity\": 2 },\n    { \"mealId\": \"{{mealId2}}\", \"quantity\": 1 }\n  ],\n  \"tipAmount\": 3.00\n}" }, "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] } } },
+        { "name": "Place Order (with coupon)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"restaurantId\": \"{{restaurantId}}\",\n  \"items\": [{ \"mealId\": \"{{mealId}}\", \"quantity\": 1 }],\n  \"couponCode\": \"{{couponCode}}\",\n  \"tipAmount\": 2.00\n}" }, "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] } } },
+        { "name": "Place Order (duplicate mealId - should fail)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"restaurantId\": \"{{restaurantId}}\",\n  \"items\": [\n    { \"mealId\": \"{{mealId}}\", \"quantity\": 1 },\n    { \"mealId\": \"{{mealId}}\", \"quantity\": 2 }\n  ],\n  \"tipAmount\": 1.00\n}" }, "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] } } },
+        { "name": "List My Orders (Customer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "List My Orders by Status (Customer)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?status=PLACED", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "status", "value": "PLACED" }] } } },
+        { "name": "List Orders with Field Selection", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?fields=id,status,totalAmount,createdAt", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "fields", "value": "id,status,totalAmount,createdAt" }] } } },
+        { "name": "List Restaurant Orders (Owner)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "List Restaurant Orders by Status (Owner)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?status=PROCESSING", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "status", "value": "PROCESSING" }] } } },
+        { "name": "List All Orders (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "List All Orders by Status (Admin)", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders?status=PLACED&page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["orders"], "query": [{ "key": "status", "value": "PLACED" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] } } },
+        { "name": "Get Order by ID", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "GET", "url": { "raw": "{{baseUrl}}/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}"] } } },
+        { "name": "Status -> PROCESSING", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"PROCESSING\" }" }, "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "status"] } } },
+        { "name": "Status -> IN_ROUTE", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"IN_ROUTE\" }" }, "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "status"] } } },
+        { "name": "Status -> DELIVERED", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ownerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"DELIVERED\" }" }, "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "status"] } } },
+        { "name": "Status -> RECEIVED", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"RECEIVED\" }" }, "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "status"] } } },
+        { "name": "Cancel Order", "request": { "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customerToken}}", "type": "string" }] }, "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"CANCELED\" }" }, "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/status", "host": ["{{baseUrl}}"], "path": ["orders", "{{orderId}}", "status"] } } }
+      ]
+    }
+  ]
+}
