@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
 type FeatureItem = {
@@ -50,15 +51,15 @@ function Feature({title, imageSrc, description, link}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <a href={link} style={{ display: 'inline-block' }}>
+        <Link to={link} style={{ display: 'inline-block' }}>
           <img src={imageSrc} className={styles.featureSvg} alt={title} />
-        </a>
+        </Link>
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">
-          <a href={link} style={{ color: 'inherit', textDecoration: 'none' }}>
+          <Link to={link} style={{ color: 'inherit', textDecoration: 'none' }}>
             {title}
-          </a>
+          </Link>
         </Heading>
         <p>{description}</p>
       </div>
